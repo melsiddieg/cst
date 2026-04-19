@@ -2,8 +2,8 @@
 
 **A linguistically-grounded alternative to subword tokenization for language modeling.**
 
-> Arabic morphology has an algebraic structure: **root × pattern = concept**.  
-> The root ك-ت-ب (write) combined with the pattern فَاعِل (agent) produces كاتب (writer).  
+> Arabic morphology has an algebraic structure: **root × pattern = concept**.
+> The root ك-ت-ب (write) combined with the pattern فَاعِل (agent) produces كاتب (writer).
 > CST generalizes this principle — encoding semantic field and morphological role directly into every token — and applies it to any language.
 
 ---
@@ -12,14 +12,14 @@
 
 Trained on 100K English sentences with GPT-2 architecture, **identical parameter counts**, using **bits-per-character (BPC)** as the cross-tokenizer metric:
 
-| Tokenizer | Vocab | Params | Tokens/sent | BPC ↓ |
-|-----------|-------|--------|-------------|-------|
-| **CST** | 8K | 6.8M | **22.1** | **1.13** |
-| SentencePiece BPE | 8K | 6.8M | 31.7 | 1.75 |
-| **CST** | 32K | 13.0M | **22.1** | **1.23** |
-| SentencePiece BPE | 32K | 13.0M | 26.6 | 1.65 |
+| Tokenizer         | Vocab | Params | Tokens/sent | BPC ↓    |
+| ----------------- | ----- | ------ | ----------- | -------- |
+| **CST**           | 8K    | 6.8M   | **22.1**    | **1.13** |
+| SentencePiece BPE | 8K    | 6.8M   | 31.7        | 1.75     |
+| **CST**           | 32K   | 13.0M  | **22.1**    | **1.23** |
+| SentencePiece BPE | 32K   | 13.0M  | 26.6        | 1.65     |
 
-**35.5% BPC reduction** at 8K vocabulary. **25.2%** at 32K.  
+**35.5% BPC reduction** at 8K vocabulary. **25.2%** at 32K.
 CST also trains **1.56× faster** due to 30% shorter token sequences.
 
 ---
@@ -28,13 +28,13 @@ CST also trains **1.56× faster** due to 30% shorter token sequences.
 
 Instead of statistical subword fragments, CST produces typed semantic tokens:
 
-| Type | Format | Example | Meaning |
-|------|--------|---------|---------|
-| `CMP` | `CMP:field:role` | `CMP:write:agent` | "writer" — write field, agent role |
-| `ROOT` | `ROOT:field` | `ROOT:move` | bare semantic field, no derivation |
-| `REL` | `REL:relation` | `REL:causes` | grammatical / logical relation |
-| `STR` | `STR:marker` | `STR:negation` | sentence-level structure |
-| `LIT` | `LIT:surface` | `LIT:the` | function words, proper nouns, fallback |
+| Type   | Format           | Example           | Meaning                                |
+| ------ | ---------------- | ----------------- | -------------------------------------- |
+| `CMP`  | `CMP:field:role` | `CMP:write:agent` | "writer" — write field, agent role     |
+| `ROOT` | `ROOT:field`     | `ROOT:move`       | bare semantic field, no derivation     |
+| `REL`  | `REL:relation`   | `REL:causes`      | grammatical / logical relation         |
+| `STR`  | `STR:marker`     | `STR:negation`    | sentence-level structure               |
+| `LIT`  | `LIT:surface`    | `LIT:the`         | function words, proper nouns, fallback |
 
 **Example:** `"The researchers discovered that rewriting the algorithm significantly improved computational efficiency."`
 
@@ -43,6 +43,7 @@ STR:past  LIT:the  CMP:science:agent  CMP:know:past  REL:that
 CMP:write:repeat  LIT:the  ROOT:think  CMP:quality:manner
 CMP:fix:past  CMP:think:quality  CMP:work:state
 ```
+
 12 tokens. BPE-8K produces 17 fragments that carry no semantic structure.
 
 The pipeline has **7 stages**: normalize → structure detect → word split → NER → lemmatize → morphological decompose → emit. The vocabulary contains ~846 semantic tokens (CMP, ROOT, REL, STR) derived from ~45 universal semantic fields and ~2,400 lemma-to-field mappings. These are language-agnostic: "write" in English, "écrire" in French, and "كتب" in Arabic all map to the same field.
@@ -56,7 +57,7 @@ The full study is available in this repository:
 - **English:** [`docs/CST_PAPER_FINAL.md`](docs/CST_PAPER_FINAL.md)
 - **Arabic:** [`docs/CST_PAPER_FINAL_AR.md`](docs/CST_PAPER_FINAL_AR.md)
 
-**Title:** *Contextual Semantic Tokenization: A Linguistically-Grounded Alternative to Subword Segmentation for Language Modeling*  
+**Title:** _Contextual Semantic Tokenization: A Linguistically-Grounded Alternative to Subword Segmentation for Language Modeling_
 **Author:** Emad Jumaah
 
 The paper covers: conceptual origin in Arabic morphology → 7-stage pipeline description → controlled fair comparison (matched vocab sizes, matched parameter counts) → results → discussion of mechanisms → cross-lingual properties → limitations and future work.
