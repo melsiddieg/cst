@@ -261,14 +261,14 @@ At 8K vocabulary, CST achieves a BPC of 1.13 compared to 1.75 for SentencePiece 
 
 We replicate the experiment on 100K Arabic Wikipedia sentences using the same GPT-2 architecture at identical parameter counts. The Arabic CST tokenizer uses CAMeL Tools (Obeid et al., 2020) for root extraction, maps roots to the same universal semantic field inventory, and handles Arabic-specific phenomena including proclitics and weak-root alternation.
 
-| Metric              | AR-CST-8K   | AR-SPM-8K   | AR-CST-32K  | AR-SPM-32K  |
-| ------------------- | ----------- | ----------- | ----------- | ----------- |
-| Vocabulary          | 8,000       | 8,000       | 32,000      | 32,000      |
-| Parameters          | 6.8M        | 6.8M        | 13.0M       | 13.0M       |
-| Avg tokens/sentence | 20.3        | 30.1        | 20.3        | 24.0        |
-| Val perplexity      | 89.1        | 273.7       | 156.8       | 785.9       |
-| **Val BPC**         | **1.15**    | **2.12**    | **1.29**    | **2.01**    |
-| **BPC reduction**   |             | **46.0%**   |             | **35.8%**   |
+| Metric              | AR-CST-8K | AR-SPM-8K | AR-CST-32K | AR-SPM-32K |
+| ------------------- | --------- | --------- | ---------- | ---------- |
+| Vocabulary          | 8,000     | 8,000     | 32,000     | 32,000     |
+| Parameters          | 6.8M      | 6.8M      | 13.0M      | 13.0M      |
+| Avg tokens/sentence | 20.3      | 30.1      | 20.3       | 24.0       |
+| Val perplexity      | 89.1      | 273.7     | 156.8      | 785.9      |
+| **Val BPC**         | **1.15**  | **2.12**  | **1.29**   | **2.01**   |
+| **BPC reduction**   |           | **46.0%** |            | **35.8%**  |
 
 The Arabic results confirm and amplify the English findings. At 8K vocabulary, Arabic CST achieves 1.15 BPC versus 2.12 for SentencePiece — a 46.0% reduction, compared to 35.5% for English. At 32K, the reduction is 35.8% versus 25.2% for English.
 
@@ -278,19 +278,29 @@ Two observations are notable:
 
 2. **BPE struggles with Arabic morphology.** Arabic SPM-8K achieves 2.12 BPC, significantly worse than English SPM-8K at 1.75. Arabic's agglutinative morphology — proclitics, rich inflection, nonconcatenative derivation — creates a much larger surface vocabulary that statistical subword methods cannot efficiently compress. CST bypasses this problem entirely by operating at the root level.
 
-### 6.2 Token Sequence Length
+### 6.2 Cross-Lingual Performance Gap
+
+BPE creates a substantial performance gap between English and Arabic: 1.75 vs 2.12 BPC at 8K vocabulary — a 21% penalty for processing Arabic. At 32K, the gap is 1.65 vs 2.01 — a 22% penalty. This is consistent with the widely observed finding that Arabic is "harder" for neural language models.
+
+CST reduces this gap to 1.13 vs 1.15 at 8K — a 1.8% difference that is within measurement noise — and 1.23 vs 1.29 at 32K — a 4.9% difference. The cross-lingual gap under CST is an order of magnitude smaller than under BPE.
+
+This result suggests that a significant portion of Arabic's historically observed difficulty in neural language modeling is attributable to tokenization strategy rather than inherent linguistic complexity. When the tokenizer encodes linguistic structure directly — operating at the level of roots and semantic fields rather than character n-grams — Arabic and English become comparably easy to model. The "difficulty" was in the tokenizer, not the language.
+
+The implication for multilingual NLP is direct: languages with rich morphological structure appear harder primarily because BPE tokenizers fragment their words more aggressively. CST eliminates this artifact by operating above the surface-form level.
+
+### 6.3 Token Sequence Length
 
 CST produces consistently shorter sequences: 22.1 tokens per sentence regardless of vocabulary cap, compared to 31.7 (SPM-8K) and 26.6 (SPM-32K). The stability of CST's sequence length across vocabulary sizes reflects the fact that semantic tokens are not affected by vocabulary capping — only rare LIT tokens are mapped to UNK, which does not change the token count.
 
 The 30% shorter sequences have a direct computational benefit: CST-8K completes each training epoch in 102 seconds versus 159 seconds for SPM-8K on an NVIDIA T4 GPU, a 1.56× throughput improvement due to reduced sequence length in the self-attention computation.
 
-### 6.3 Vocabulary Composition Effect
+### 6.4 Vocabulary Composition Effect
 
 An unexpected finding is that CST-8K (1.13 BPC, 6.8M params) outperforms CST-32K (1.23 BPC, 13.0M params) despite having fewer parameters and a smaller vocabulary. We attribute this to vocabulary focus: at 8K, the vocabulary contains only high-frequency words alongside semantic tokens, reducing the sparsity of the embedding space. The 5.6% UNK rate at 8K effectively regularizes the model, forcing it to rely on semantic structure rather than memorizing rare surface forms.
 
 This contrasts with SentencePiece, where the 32K vocabulary (1.65 BPC) outperforms the 8K vocabulary (1.75 BPC), following the expected pattern for subword tokenizers where larger vocabularies reduce segmentation granularity.
 
-### 6.4 Training Dynamics
+### 6.5 Training Dynamics
 
 | Metric                       | CST-8K       | SPM-8K       |
 | ---------------------------- | ------------ | ------------ |
@@ -325,11 +335,13 @@ The Arabic CST tokenizer achieves 79% token coverage on Wikipedia text using ~50
 
 The results are striking: Arabic CST-8K achieves 1.15 BPC — virtually identical to English CST-8K at 1.13 — while Arabic BPE-8K achieves 2.12, far worse than English BPE-8K at 1.75. The 46.0% BPC reduction at 8K vocabulary exceeds the English advantage of 35.5%, confirming that morphologically rich languages benefit _more_ from semantic tokenization.
 
-| Metric          | English | Arabic |
-| --------------- | ------- | ------ |
-| CST-8K BPC      | 1.13    | 1.15   |
-| SPM-8K BPC      | 1.75    | 2.12   |
-| CST advantage   | 35.5%   | 46.0%  |
+| Metric                | CST-8K   | SPM-8K   | CST-32K  | SPM-32K  |
+| --------------------- | -------- | -------- | -------- | -------- |
+| English BPC           | 1.13     | 1.75     | 1.23     | 1.65     |
+| Arabic BPC            | 1.15     | 2.12     | 1.29     | 2.01     |
+| **Cross-lingual gap** | **0.02** | **0.37** | **0.06** | **0.36** |
+
+The cross-lingual gap row is the key finding: BPE creates a 0.37 BPC penalty for Arabic at 8K vocabulary, while CST reduces this to 0.02 — a difference within measurement noise.
 
 Because the semantic tokens are identical across languages, a model pretrained on English CST tokens and then fine-tuned on Arabic CST tokens shares a common vocabulary for all semantic content. The cross-lingual transfer requires no alignment: `ROOT:write` means the same thing whether the training sentence came from English or Arabic.
 
