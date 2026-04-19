@@ -17,6 +17,9 @@ training/colab-upload-ar/
 # Python bytecode
 __pycache__/
 
+# Superseded scripts
+training/arabic_experiment.py
+
 # SentencePiece binary models (large)
 training/**/*.model
 training/**/*.vocab
