@@ -3,14 +3,14 @@
 **A linguistically-grounded alternative to subword tokenization for language modeling.**
 
 > Arabic morphology has an algebraic structure: **root × pattern = concept**.
-> The root ك-ت-ب (write) combined with the pattern فَاعِل (agent) produces كاتب (writer).
+> The root ك-ت-ب (k-t-b, write) combined with the pattern فَاعِل (agent) produces كاتب (writer).
 > CST generalizes this principle — encoding semantic field and morphological role directly into every token — and applies it to any language.
 
 ---
 
 ## Results
 
-Trained on 100K English sentences with GPT-2 architecture, **identical parameter counts**, using **bits-per-character (BPC)** as the cross-tokenizer metric:
+Trained on 100K English sentences with GPT-2 architecture at **identical parameter counts**, evaluated using **bits-per-character (BPC)** — a metric that is directly comparable across tokenizers:
 
 | Tokenizer         | Vocab | Params | Tokens/sent | BPC ↓    |
 | ----------------- | ----- | ------ | ----------- | -------- |
@@ -26,15 +26,15 @@ CST also trains **1.56× faster** due to 30% shorter token sequences.
 
 ## How It Works
 
-Instead of statistical subword fragments, CST produces typed semantic tokens:
+Instead of statistical subword fragments, CST maps every word to a typed semantic token:
 
-| Type   | Format           | Example           | Meaning                                |
-| ------ | ---------------- | ----------------- | -------------------------------------- |
-| `CMP`  | `CMP:field:role` | `CMP:write:agent` | "writer" — write field, agent role     |
-| `ROOT` | `ROOT:field`     | `ROOT:move`       | bare semantic field, no derivation     |
-| `REL`  | `REL:relation`   | `REL:causes`      | grammatical / logical relation         |
-| `STR`  | `STR:marker`     | `STR:negation`    | sentence-level structure               |
-| `LIT`  | `LIT:surface`    | `LIT:the`         | function words, proper nouns, fallback |
+| Type    | Format           | Example           | Meaning                                |
+| ------- | ---------------- | ----------------- | -------------------------------------- |
+| `CMP`   | `CMP:field:role` | `CMP:write:agent` | "writer" — write field, agent role     |
+| `ROOT`  | `ROOT:field`     | `ROOT:move`       | semantic field only, no derivation     |
+| `REL`   | `REL:relation`   | `REL:causes`      | grammatical or logical relation        |
+| `STR`   | `STR:marker`     | `STR:negation`    | sentence-level structural marker       |
+| `LIT`   | `LIT:surface`    | `LIT:the`         | function words, proper nouns, fallback |
 
 **Example:** `"The researchers discovered that rewriting the algorithm significantly improved computational efficiency."`
 
@@ -44,9 +44,9 @@ CMP:write:repeat  LIT:the  ROOT:think  CMP:quality:manner
 CMP:fix:past  CMP:think:quality  CMP:work:state
 ```
 
-12 tokens. BPE-8K produces 17 fragments that carry no semantic structure.
+12 tokens vs. 17 fragments from BPE-8K — and every CST token carries an explicit semantic label.
 
-The pipeline has **7 stages**: normalize → structure detect → word split → NER → lemmatize → morphological decompose → emit. The vocabulary contains ~846 semantic tokens (CMP, ROOT, REL, STR) derived from ~45 universal semantic fields and ~2,400 lemma-to-field mappings. These are language-agnostic: "write" in English, "écrire" in French, and "كتب" in Arabic all map to the same field.
+The tokenizer runs in **7 stages**: normalize → detect structure → split words → identify named entities → lemmatize → morphological decomposition → emit token. The vocabulary contains ~846 semantic tokens derived from ~45 universal semantic fields and ~2,400 lemma-to-field mappings. These fields are language-agnostic: "write" in English, "écrire" in French, and "كتب" in Arabic all resolve to the same token space.
 
 ---
 
@@ -57,10 +57,10 @@ The full study is available in this repository:
 - **English:** [`docs/cst-paper.md`](docs/cst-paper.md)
 - **Arabic:** [`docs/cst-paper-ar.md`](docs/cst-paper-ar.md)
 
-**Title:** _Contextual Semantic Tokenization: A Linguistically-Grounded Alternative to Subword Segmentation for Language Modeling_
+**Title:** _Contextual Semantic Tokenization: A Linguistically-Grounded Alternative to Subword Segmentation for Language Modeling_  
 **Author:** Emad Jumaah
 
-The paper covers: conceptual origin in Arabic morphology → 7-stage pipeline description → controlled fair comparison (matched vocab sizes, matched parameter counts) → results → discussion of mechanisms → cross-lingual properties → limitations and future work.
+The paper covers the conceptual origin in Arabic triconsonantal morphology, the full 7-stage tokenizer design, a controlled comparison against SentencePiece BPE at matched vocabulary sizes and parameter counts, experimental results, mechanistic analysis, cross-lingual properties, limitations, and future directions.
 
 ---
 
@@ -68,8 +68,8 @@ The paper covers: conceptual origin in Arabic morphology → 7-stage pipeline de
 
 ```bash
 npm install
-npm test                # 30 tests across 4 files
-npx tsx src/demo.ts     # see the tokenizer in action
+npm test                # run the test suite
+npx tsx src/demo.ts     # tokenize example sentences
 ```
 
 **Requirements:** Node.js 18+, TypeScript.
@@ -81,35 +81,35 @@ npx tsx src/demo.ts     # see the tokenizer in action
 ```
 src/
   tokenizer/
-    index.ts              ← CSTTokenizer class (7-stage pipeline)
-    types.ts              ← Token types, interfaces
-    normalizer.ts         ← Stage 1: text normalization
-    structureDetector.ts  ← Stage 2: STR token detection
-    ner.ts                ← Stage 4: named entity recognition
-    morphology.ts         ← Stage 6: prefix/suffix decomposition (9+25 rules)
-    semanticFields.ts     ← Stage 6: lemma → semantic field (~2,400 mappings)
-    emitter.ts            ← Stage 7: token emission with priority cascade
+    index.ts              ← CSTTokenizer (7-stage processing)
+    types.ts              ← token types and interfaces
+    normalizer.ts         ← stage 1: text normalization
+    structureDetector.ts  ← stage 2: sentence-level STR detection
+    ner.ts                ← stage 4: named entity recognition
+    morphology.ts         ← stage 6: prefix/suffix decomposition (9+25 rules)
+    semanticFields.ts     ← stage 6: lemma → semantic field (~2,400 mappings)
+    emitter.ts            ← stage 7: token emission with priority resolution
     vocabulary.ts         ← token ↔ ID registry
-    data.ts               ← relation map (~245) + function words (~95)
+    data.ts               ← relation map (~245 entries) + function words (~95)
   tests/
-    examples.test.ts      ← end-to-end tokenization cases
+    examples.test.ts      ← end-to-end tokenization
     morphology.test.ts
     normalizer.test.ts
     structure.test.ts
 training/
-  colab_train_fair.py     ← fair 4-way comparison (CST vs BPE, 8K vs 32K)
-  colab_train.py          ← original training script
-  cap_cst_vocab.py        ← cap CST vocabulary to target size V
+  colab_train_fair.py     ← 4-way comparison: CST vs BPE at 8K and 32K vocab
+  colab_train.py          ← GPT-2 training script
+  cap_cst_vocab.py        ← constrain CST vocabulary to a target size V
   train_bpe.py            ← train SentencePiece BPE baseline
-  train_gpt2.py           ← GPT-2 training utilities
+  train_gpt2.py           ← GPT-2 model utilities
   requirements.txt
 docs/
-  CST_PAPER_FINAL.md      ← full paper (English)
-  CST_PAPER_FINAL_AR.md   ← full paper (Arabic / النسخة العربية)
+  cst-paper.md            ← full paper (English)
+  cst-paper-ar.md         ← full paper (Arabic / النسخة العربية)
 ```
 
 ---
 
 ## Background
 
-This project began with the [Arabic Algebra Engine](https://emadjumaah.github.io/aae/), which organized 820+ Arabic roots into semantic domains based on the triconsonantal root system. The key observation: Arabic morphology is a formal algebra that has operated for 1,400 years. CST is the generalization of that algebra into a tokenization framework for neural language models.
+This project originated from the [Arabic Algebra Engine](https://emadjumaah.github.io/aae/), which organized 820+ Arabic roots into semantic domains based on the triconsonantal root system. The key observation: Arabic morphology is a formal algebra — root × pattern = concept — refined over fourteen centuries of linguistic scholarship. CST is the generalization of that algebra into a tokenization framework for neural language models.
