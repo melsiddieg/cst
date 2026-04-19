@@ -22,6 +22,16 @@ Trained on 100K English sentences with GPT-2 architecture at **identical paramet
 **35.5% BPC reduction** at 8K vocabulary. **25.2%** at 32K.
 CST also trains **1.56× faster** due to 30% shorter token sequences.
 
+### Arabic (100K Wikipedia sentences)
+
+| Tokenizer         | Vocab  | Tokens/sent | Compression vs BPE |
+| ----------------- | ------ | ----------- | ------------------- |
+| **Arabic CST**    | ~99K   | **19.9**    | —                   |
+| SentencePiece BPE | 8K     | 30.2        | CST uses **65.9%**  |
+| SentencePiece BPE | 32K    | 24.2        | CST uses **82.4%**  |
+
+Arabic CST achieves **1.52× compression** over BPE-8K — root-based semantic tokenization maps naturally onto Arabic's triconsonantal morphology.
+
 ---
 
 ## How It Works
@@ -99,6 +109,8 @@ src/
 training/
   colab_train_fair.py     ← 4-way comparison: CST vs BPE at 8K and 32K vocab
   colab_train.py          ← GPT-2 training script
+  arabic_experiment_v2.py ← Arabic CST experiment (download + tokenize + compare)
+  analyze_missed.py       ← Arabic root coverage analysis
   cap_cst_vocab.py        ← constrain CST vocabulary to a target size V
   train_bpe.py            ← train SentencePiece BPE baseline
   train_gpt2.py           ← GPT-2 model utilities
@@ -113,3 +125,23 @@ docs/
 ## Background
 
 This project originated from the [Arabic Algebra Engine](https://emadjumaah.github.io/aae/), which organized 820+ Arabic roots into semantic domains based on the triconsonantal root system. The key observation: Arabic morphology is a formal algebra — root × pattern = concept — refined over fourteen centuries of linguistic scholarship. CST is the generalization of that algebra into a tokenization framework for neural language models.
+
+---
+
+## Regenerating Data
+
+Training data (tokenized .jsonl files) is gitignored to keep the repo small. To regenerate:
+
+```bash
+# English: CST + SentencePiece BPE at 8K and 32K vocab
+python training/cap_cst_vocab.py          # CST-8K and CST-32K
+python training/train_bpe.py              # SPM-8K and SPM-32K
+
+# Arabic: download 100K Wikipedia sentences + CST + SPM at 8K/32K
+python training/arabic_experiment_v2.py --sentences 100000
+
+# Coverage analysis (on cached 1K Arabic sentences)
+python training/analyze_missed.py
+```
+
+**Requirements:** `pip install -r training/requirements.txt` + `camel_tools` with morphology DB (`camel_data -i morphology-db-msa-r13`).

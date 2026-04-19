@@ -4,6 +4,7 @@ node_modules/
 # Large data files — regenerate with training scripts
 data/parquet/
 data/tokenized/
+data/arabic/
 data/sentences.json
 data/sentences-1k.json
 data/sentences-100.json
