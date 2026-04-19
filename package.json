@@ -8,14 +8,18 @@
     "test:watch": "vitest",
     "coverage": "tsx src/pipeline/coverage.ts",
     "process": "tsx src/pipeline/process.ts",
-    "stats": "tsx src/pipeline/stats.ts"
+    "stats": "tsx src/pipeline/stats.ts",
+    "pdf": "tsx scripts/generate-pdf.ts"
   },
   "dependencies": {
     "compromise": "^14.14.3",
     "hyparquet": "^1.25.6"
   },
   "devDependencies": {
+    "@types/marked": "^5.0.2",
     "@types/node": "^22.0.0",
+    "marked": "^18.0.2",
+    "puppeteer-core": "^24.41.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
