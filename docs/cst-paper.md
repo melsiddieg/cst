@@ -44,8 +44,9 @@ This paper makes the following contributions:
 1. We trace the conceptual origin of CST to Arabic triconsonantal morphology, showing how root × pattern composition generalizes to a universal tokenization principle.
 2. We describe the CST pipeline, a seven-stage tokenizer that produces typed, linguistically-annotated tokens for English.
 3. We present a controlled comparison against SentencePiece BPE at matched vocabulary sizes and parameter counts, isolating tokenization strategy as the sole variable.
-4. We report a 35.5% BPC reduction at 8K vocabulary and 25.2% at 32K vocabulary, demonstrating that linguistic structure in tokenization improves language modeling efficiency.
-5. We analyze CST's cross-lingual properties, showing that its semantic token space is language-agnostic and that Arabic and other morphologically rich languages are natural beneficiaries.
+4. We report a 35.5% BPC reduction at 8K vocabulary and 25.2% at 32K vocabulary on English, demonstrating that linguistic structure in tokenization improves language modeling efficiency.
+5. We validate CST on Arabic — the language whose morphology motivated the framework — achieving a 46.0% BPC reduction at 8K and 35.8% at 32K, confirming that morphologically rich languages benefit even more from semantic tokenization.
+6. We analyze CST's cross-lingual properties, showing that its semantic token space is language-agnostic and that Arabic and English achieve near-identical CST BPC (1.15 vs 1.13) despite dramatically different morphological systems.
 
 ---
 
@@ -256,6 +257,27 @@ We also report per-token perplexity and average tokens per sentence for complete
 
 At 8K vocabulary, CST achieves a BPC of 1.13 compared to 1.75 for SentencePiece — a 35.5% reduction. At 32K vocabulary, CST achieves 1.23 versus 1.65 — a 25.2% reduction. Both comparisons use identical architectures with identical parameter counts.
 
+### 6.1.1 Arabic Results
+
+We replicate the experiment on 100K Arabic Wikipedia sentences using the same GPT-2 architecture at identical parameter counts. The Arabic CST tokenizer uses CAMeL Tools (Obeid et al., 2020) for root extraction, maps roots to the same universal semantic field inventory, and handles Arabic-specific phenomena including proclitics and weak-root alternation.
+
+| Metric              | AR-CST-8K   | AR-SPM-8K   | AR-CST-32K  | AR-SPM-32K  |
+| ------------------- | ----------- | ----------- | ----------- | ----------- |
+| Vocabulary          | 8,000       | 8,000       | 32,000      | 32,000      |
+| Parameters          | 6.8M        | 6.8M        | 13.0M       | 13.0M       |
+| Avg tokens/sentence | 20.3        | 30.1        | 20.3        | 24.0        |
+| Val perplexity      | 89.1        | 273.7       | 156.8       | 785.9       |
+| **Val BPC**         | **1.15**    | **2.12**    | **1.29**    | **2.01**    |
+| **BPC reduction**   |             | **46.0%**   |             | **35.8%**   |
+
+The Arabic results confirm and amplify the English findings. At 8K vocabulary, Arabic CST achieves 1.15 BPC versus 2.12 for SentencePiece — a 46.0% reduction, compared to 35.5% for English. At 32K, the reduction is 35.8% versus 25.2% for English.
+
+Two observations are notable:
+
+1. **CST BPC is nearly language-invariant.** Arabic CST-8K achieves 1.15 BPC, virtually identical to English CST-8K at 1.13. The semantic tokenization layer normalizes away the surface-level differences between the two languages.
+
+2. **BPE struggles with Arabic morphology.** Arabic SPM-8K achieves 2.12 BPC, significantly worse than English SPM-8K at 1.75. Arabic's agglutinative morphology — proclitics, rich inflection, nonconcatenative derivation — creates a much larger surface vocabulary that statistical subword methods cannot efficiently compress. CST bypasses this problem entirely by operating at the root level.
+
 ### 6.2 Token Sequence Length
 
 CST produces consistently shorter sequences: 22.1 tokens per sentence regardless of vocabulary cap, compared to 31.7 (SPM-8K) and 26.6 (SPM-32K). The stability of CST's sequence length across vocabulary sizes reflects the fact that semantic tokens are not affected by vocabulary capping — only rare LIT tokens are mapped to UNK, which does not change the token count.
@@ -293,15 +315,23 @@ We identify three mechanisms through which CST improves language modeling:
 
 **Field-level generalization.** Words mapped to the same semantic field share a token prefix. "Writer," "writing," "written," and "wrote" all produce tokens beginning with `write`, differing only in role. This enables the model to generalize across morphological variants without needing to see each surface form in training. In Arabic, this generalization is automatic: any word derived from كتب shares root identity in the morphological representation. CST makes the equivalent generalization available to models trained on English.
 
-### 7.2 Arabic as the Natural Next Step
+### 7.2 Arabic Validation
 
-The experiments in this paper are conducted on English. Arabic is, in a precise sense, the language for which CST requires the least additional work and where its advantages are largest.
+The Arabic experiment (Section 6.1.1) confirms the predictions of CST's design. Arabic is the language whose morphological algebra motivated CST, and the results validate this origin.
 
-In Arabic, the CST pipeline's morphological decomposition stage is replaced by a direct root-pattern extraction. Tools such as Farasa (Abdelali et al., 2016) and CAMeL Tools (Obeid et al., 2020) extract Arabic roots and patterns from surface forms with high accuracy. Where the English tokenizer detects the suffix _-er_ in "writer" and looks up "write" in the semantic field dictionary, the Arabic tokenizer reads كاتب, identifies root كتب and pattern فاعل, and emits `CMP:write:agent` directly — the same token.
+The Arabic CST tokenizer uses CAMeL Tools (Obeid et al., 2020) for root extraction, mapping Arabic roots to the same universal semantic field inventory used for English. Where the English tokenizer detects the suffix _-er_ in "writer" and looks up "write" in the semantic field dictionary, the Arabic tokenizer reads كاتب, extracts root كتب, and emits `ROOT:write` — mapping to the same semantic field.
 
-This means that an Arabic CST tokenizer produces a higher proportion of CMP tokens (lower LIT rate) than the English tokenizer, because Arabic morphological regularity makes more words decomposable. The 66.1% structured token rate achieved on English Wikipedia is a lower bound on what Arabic would achieve.
+The Arabic CST tokenizer achieves 79% token coverage on Wikipedia text using ~500 root-to-field mappings, with automatic wildcard matching for weak-root variants (e.g., ك.#.ن matching both كون and كان). Proclitic stripping handles Arabic's agglutinative prefixes (ال، و، ب، ف، ل، ك), enabling analysis of cliticized forms.
 
-Furthermore, because the semantic tokens are identical across languages, a model pretrained on English CST tokens and then fine-tuned on Arabic CST tokens shares a common vocabulary for all semantic content. The cross-lingual transfer requires no alignment: `CMP:write:agent` means the same thing whether the training sentence came from English or Arabic.
+The results are striking: Arabic CST-8K achieves 1.15 BPC — virtually identical to English CST-8K at 1.13 — while Arabic BPE-8K achieves 2.12, far worse than English BPE-8K at 1.75. The 46.0% BPC reduction at 8K vocabulary exceeds the English advantage of 35.5%, confirming that morphologically rich languages benefit _more_ from semantic tokenization.
+
+| Metric          | English | Arabic |
+| --------------- | ------- | ------ |
+| CST-8K BPC      | 1.13    | 1.15   |
+| SPM-8K BPC      | 1.75    | 2.12   |
+| CST advantage   | 35.5%   | 46.0%  |
+
+Because the semantic tokens are identical across languages, a model pretrained on English CST tokens and then fine-tuned on Arabic CST tokens shares a common vocabulary for all semantic content. The cross-lingual transfer requires no alignment: `ROOT:write` means the same thing whether the training sentence came from English or Arabic.
 
 ### 7.3 Cross-Lingual Properties
 
@@ -326,7 +356,7 @@ The observation that CST-8K outperforms CST-32K is noteworthy. The 5.6% UNK rate
 
 **Dependency on NLP tooling.** CST relies on compromise.js for lemmatization and NER. The quality of these components directly affects tokenization quality. Errors in lemmatization propagate to incorrect field resolution. Replacing the NLP backend with a more accurate tool would likely improve results.
 
-**Single-language evaluation.** We evaluate on English only. While the semantic field framework is theoretically language-universal, and while the Arabic origin of the framework suggests strong applicability to Semitic languages, empirical validation on morphologically rich languages (Arabic, Turkish, Finnish) and typologically diverse languages (Mandarin, Japanese) is needed.
+**Two-language evaluation.** We evaluate on English and Arabic. While the Arabic results strongly validate CST on morphologically rich Semitic languages, empirical validation on typologically diverse languages — agglutinative (Turkish, Finnish), isolating (Mandarin), and polysynthetic languages — is needed to establish the full generality of the framework.
 
 **Small-scale experiments.** Our experiments use 100K sentences and models up to 13M parameters. It remains an open question whether CST's advantages persist at the scale of modern language models. We observe consistent results across both vocabulary sizes (35.5% at 8K, 25.2% at 32K), suggesting the effect is not vocabulary-size dependent, though validation at larger scale remains future work.
 
@@ -336,9 +366,9 @@ The observation that CST-8K outperforms CST-32K is noteworthy. The 5.6% UNK rate
 
 ## 8. Future Work
 
-**Arabic CST.** The conceptual origin of this work is Arabic morphology. Implementing CST for Arabic using Farasa or CAMeL Tools for root-pattern extraction would validate the framework on the language that motivated it and is expected to yield higher structured token coverage than English. An empirical validation — training a single model on interleaved English and Arabic CST tokens — would test whether the shared semantic space enables genuine cross-lingual transfer without parallel data.
+**Cross-lingual transfer.** The Arabic and English experiments demonstrate that CST produces near-identical BPC across languages (1.15 vs 1.13). The next step is training a single model on interleaved English and Arabic CST tokens to test whether the shared semantic space enables genuine cross-lingual transfer without parallel data.
 
-**Multilingual CST.** Beyond Arabic, CST is a natural fit for Hebrew (Semitic root system), Turkish (agglutinative morphology with explicit role suffixes), and Finnish (case-marked noun morphology). A multilingual semantic dictionary mapping lemmas from multiple languages to the same field set would enable a shared tokenizer with a compact, language-agnostic vocabulary.
+**Multilingual CST.** Beyond Arabic and English, CST is a natural fit for Hebrew (Semitic root system), Turkish (agglutinative morphology with explicit role suffixes), and Finnish (case-marked noun morphology). A multilingual semantic dictionary mapping lemmas from multiple languages to the same field set would enable a shared tokenizer with a compact, language-agnostic vocabulary.
 
 **Downstream task evaluation.** Evaluation on classification (SST-2), question answering (SQuAD), natural language inference (MNLI), and machine translation benchmarks would establish whether BPC improvements translate to task-level gains.
 
@@ -352,13 +382,13 @@ The observation that CST-8K outperforms CST-32K is noteworthy. The 5.6% UNK rate
 
 ## 9. Conclusion
 
-We have presented Contextual Semantic Tokenization, a linguistically-grounded tokenization method whose conceptual foundation is the algebraic structure of Arabic triconsonantal morphology. Arabic root × pattern composition — a system refined over fourteen centuries of linguistic use — encodes semantic field and morphological role directly in word structure. CST generalizes this principle to a universal framework, recovering the same structured information from English through lemmatization and affix detection, and encoding it as typed semantic tokens that any language model can train on.
+We have presented Contextual Semantic Tokenization, a linguistically-grounded tokenization method whose conceptual foundation is the algebraic structure of Arabic triconsonantal morphology. Arabic root × pattern composition — a system refined over fourteen centuries of linguistic use — encodes semantic field and morphological role directly in word structure. CST generalizes this principle to a universal framework, recovering the same structured information from English through lemmatization and affix detection and from Arabic through root extraction, encoding it as typed semantic tokens that any language model can train on.
 
-In controlled experiments with identical model architectures and parameter counts, CST reduces bits-per-character by 35.5% at 8K vocabulary and 25.2% at 32K vocabulary compared to SentencePiece BPE. CST also produces 30% shorter token sequences, yielding faster training.
+In controlled experiments with identical model architectures and parameter counts, CST reduces bits-per-character by 35.5% at 8K vocabulary and 25.2% at 32K vocabulary on English compared to SentencePiece BPE. On Arabic — the language whose morphology motivated the framework — the advantage is even larger: 46.0% at 8K and 35.8% at 32K. Remarkably, CST achieves near-identical BPC across both languages (1.15 Arabic vs 1.13 English), while BPE struggles significantly more with Arabic (2.12 vs 1.75). CST also produces 30–33% shorter token sequences, yielding faster training.
 
-These results demonstrate that encoding linguistic structure directly into the tokenization layer provides a meaningful inductive bias for language modeling. The approach is simple to implement, requires no additional training beyond dictionary construction, and produces interpretable tokens. Its most natural extension is Arabic — the language whose morphological algebra made the principle visible — and from there to any language with recoverable morphological structure.
+These results demonstrate that encoding linguistic structure directly into the tokenization layer provides a meaningful inductive bias for language modeling, and that the benefit increases for morphologically rich languages where statistical subword methods are weakest. The approach is simple to implement, requires no additional training beyond dictionary construction, and produces interpretable tokens. The Arabic validation confirms that CST's semantic token space is genuinely language-agnostic: the same ~45 semantic fields serve both English and Arabic with comparable effectiveness.
 
-The Arabic root-pattern system was a formal algebra long before neural language models existed. CST is, in one sense, the observation that this algebra was always a tokenizer waiting to be used.
+The Arabic root-pattern system was a formal algebra long before neural language models existed. CST is, in one sense, the observation that this algebra was always a tokenizer waiting to be used — and the Arabic experiment proves it.
 
 ---
 
