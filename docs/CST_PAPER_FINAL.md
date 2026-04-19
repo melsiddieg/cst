@@ -187,6 +187,8 @@ At 8K vocabulary, this produces a 5.6% UNK rate (rare words appearing fewer than
 
 ## 5. Experimental Setup
 
+All code, tokenizer source, training scripts, and the paper are publicly available at **https://github.com/emadjumaah/cst**.
+
 ### 5.1 Dataset
 
 We use 99,963 English sentences from the `agentlans/high-quality-english-sentences` dataset (Hugging Face), sourced from Wikipedia and covering diverse domains including science, history, geography, technology, and biography. The dataset provides broad lexical coverage without domain bias.
@@ -480,4 +482,4 @@ All code, data pipelines, and training scripts are available in the project repo
 5. **Model training:** GPT-2 via Hugging Face Transformers, trained on Google Colab with NVIDIA T4 GPU.
 6. **Evaluation:** BPC computed as total validation NLL (nats) divided by total validation characters divided by ln(2).
 
-The semantic field dictionary and Arabic Algebra Engine that motivated this work are available at https://emadjumaah.github.io/aae/.
+The full codebase — tokenizer (TypeScript), training scripts (Python), vocabulary capping utilities, and this paper — is available at **https://github.com/emadjumaah/cst**. The semantic field dictionary and Arabic Algebra Engine that motivated this work are available at https://emadjumaah.github.io/aae/.
