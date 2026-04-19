@@ -1,5 +1,9 @@
 # Contextual Semantic Tokenization (CST)
 
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![DOI](https://img.shields.io/badge/DOI-pending_Zenodo-grey.svg)](#citation)
+[![Demo](https://img.shields.io/badge/Demo-Arabic_Algebra_Engine-green.svg)](https://emadjumaah.github.io/aae/)
+
 **A linguistically-grounded alternative to subword tokenization for language modeling.**
 
 > Arabic morphology has an algebraic structure: **root × pattern = concept**.
@@ -79,7 +83,7 @@ The tokenizer runs in **7 stages**: normalize → detect structure → split wor
 The full study is available in this repository:
 
 - **English:** [`docs/cst-paper.md`](docs/cst-paper.md)
-- **Arabic:** [`docs/cst-paper-ar.md`](docs/cst-paper-ar.md)
+- **Arabic:** [`docs/cst-paper-ar.md`](docs/cst-paper-ar.md) — published simultaneously in Arabic; to our knowledge the first NLP systems paper to do so.
 
 **Title:** _Contextual Semantic Tokenization: A Linguistically-Grounded Alternative to Subword Segmentation for Language Modeling_
 **Author:** Emad Jumaah
