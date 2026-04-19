@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Large data files — regenerate with training scripts
+data/parquet/
+data/tokenized/
+data/sentences.json
+data/sentences-1k.json
+data/sentences-100.json
+
+# Colab upload staging directories (derived data)
+training/colab-upload/
+training/colab-upload-fair/
+
+# SentencePiece binary models (large)
+training/**/*.model
+training/**/*.vocab
+
+# Build output
+dist/
+
+# OS
+.DS_Store
