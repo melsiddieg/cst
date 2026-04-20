@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CST Edge — Arabic Language Model</title>
+    <style>
+      :root {
+        --bg: #0f1117;
+        --bg2: #1a1d27;
+        --bg3: #252836;
+        --text: #e4e4e7;
+        --text-dim: #9ca3af;
+        --gold: #d4a853;
+        --green: #4ade80;
+        --cyan: #67e8f9;
+        --border: #2d3040;
+        --font: "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+        --mono: "IBM Plex Mono", "Courier New", monospace;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 24px 16px;
+      }
+
+      header {
+        text-align: center;
+        padding: 32px 0 24px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 24px;
+      }
+      header h1 {
+        font-size: 1.6rem;
+        color: var(--gold);
+        margin-bottom: 6px;
+      }
+      header p {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+      }
+      #model-status {
+        display: inline-block;
+        font-size: 0.72rem;
+        padding: 3px 10px;
+        border-radius: 10px;
+        margin-top: 8px;
+      }
+      #model-status.loading {
+        background: #3b3520;
+        color: var(--gold);
+      }
+      #model-status.loaded {
+        background: #1a3320;
+        color: var(--green);
+      }
+      #model-status.error {
+        background: #331a1a;
+        color: #f87171;
+      }
+
+      .input-section {
+        margin-bottom: 24px;
+      }
+      .input-row {
+        display: flex;
+        gap: 8px;
+        direction: rtl;
+      }
+      .input-row input {
+        flex: 1;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 1rem;
+        background: var(--bg2);
+        color: var(--text);
+        outline: none;
+        font-family: var(--font);
+        direction: rtl;
+        text-align: right;
+      }
+      .input-row input:focus {
+        border-color: var(--gold);
+      }
+      .input-row input::placeholder {
+        color: var(--text-dim);
+      }
+      .send-btn {
+        padding: 14px 24px;
+        border: none;
+        border-radius: 10px;
+        background: var(--gold);
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .send-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+        direction: rtl;
+      }
+      .sug-btn {
+        padding: 5px 14px;
+        font-size: 0.78rem;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        color: var(--text-dim);
+        cursor: pointer;
+        font-family: var(--font);
+      }
+      .sug-btn:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+
+      .settings {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin-top: 12px;
+        direction: ltr;
+        font-size: 0.8rem;
+        color: var(--text-dim);
+      }
+      .settings label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .settings input[type="range"] {
+        width: 80px;
+        accent-color: var(--gold);
+      }
+      .settings select {
+        background: var(--bg3);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 3px 6px;
+        font-size: 0.78rem;
+      }
+
+      .encoding-info {
+        font-size: 0.75rem;
+        margin-top: 8px;
+        direction: ltr;
+        font-family: var(--mono);
+      }
+      .encoding-info.ok {
+        color: var(--green);
+      }
+      .encoding-info.warn {
+        color: var(--gold);
+      }
+
+      .output-section {
+        display: none;
+      }
+      .output-section.visible {
+        display: block;
+      }
+
+      .output-box {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .output-label {
+        font-size: 0.72rem;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+      }
+      .arabic-output {
+        font-size: 1.2rem;
+        line-height: 2;
+        direction: rtl;
+        text-align: right;
+        color: var(--text);
+      }
+      .arabic-output .generated {
+        color: var(--gold);
+      }
+
+      .anatomy-toggle {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        cursor: pointer;
+        margin-bottom: 12px;
+        font-family: var(--font);
+      }
+      .anatomy-toggle:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+
+      .anatomy {
+        display: none;
+      }
+      .anatomy.visible {
+        display: block;
+      }
+      .token-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        direction: rtl;
+      }
+      .token-chip {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        background: var(--bg3);
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+      }
+      .token-chip .arabic {
+        color: var(--text);
+        font-size: 0.85rem;
+      }
+      .token-chip .tag {
+        font-size: 0.6rem;
+        font-family: var(--mono);
+        margin-top: 2px;
+      }
+      .token-chip .tag.root {
+        color: var(--cyan);
+      }
+      .token-chip .tag.func {
+        color: var(--green);
+      }
+      .token-chip .tag.surf {
+        color: var(--text-dim);
+      }
+      .token-chip.seed {
+        border: 1px solid var(--border);
+      }
+      .token-chip.gen {
+        border: 1px solid var(--gold);
+      }
+
+      .stats {
+        display: flex;
+        gap: 20px;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        font-family: var(--mono);
+        direction: ltr;
+        margin-top: 12px;
+      }
+      .stats span {
+        color: var(--cyan);
+      }
+
+      .info-box {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 24px;
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        line-height: 1.6;
+      }
+      .info-box h3 {
+        color: var(--gold);
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>نموذج CST العربي — Edge</h1>
+        <p>6.8M parameters · INT8 quantized · runs in your browser</p>
+        <div id="model-status" class="loading">Loading model...</div>
+      </header>
+
+      <div class="input-section">
+        <div class="input-row">
+          <input
+            type="text"
+            id="input"
+            placeholder="اكتب جملة عربية..."
+            autocomplete="off"
+          />
+          <button class="send-btn" id="send-btn" disabled>أكمل</button>
+        </div>
+        <div class="suggestions" id="suggestions"></div>
+        <div class="settings">
+          <label
+            >Tokens:
+            <input type="range" id="max-tokens" min="1" max="40" value="15" />
+            <span id="max-tokens-val">15</span></label
+          >
+          <label
+            >Temp:
+            <select id="temperature">
+              <option value="0">0 (greedy)</option>
+              <option value="0.5">0.5</option>
+              <option value="0.8" selected>0.8</option>
+              <option value="1.0">1.0</option>
+              <option value="1.2">1.2</option>
+            </select></label
+          >
+        </div>
+        <div id="encoding-info" class="encoding-info"></div>
+      </div>
+
+      <div class="output-section" id="output-section">
+        <div class="output-box">
+          <div class="output-label">Output</div>
+          <div class="arabic-output" id="arabic-output"></div>
+          <div class="stats" id="stats"></div>
+        </div>
+        <button class="anatomy-toggle" id="anatomy-toggle">
+          Token Anatomy ▸
+        </button>
+        <div class="anatomy" id="anatomy">
+          <div class="output-box">
+            <div class="output-label">Token Details</div>
+            <div class="token-list" id="token-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <h3>About this demo</h3>
+        <p>
+          This model was trained on 100K Arabic sentences using
+          <strong>Context-Sensitive Tokenization (CST)</strong> — a
+          morphology-aware tokenizer for Arabic. It runs fully in your browser
+          via ONNX Runtime WebAssembly (no server). Type an Arabic phrase and
+          the model predicts what comes next.
+        </p>
+      </div>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

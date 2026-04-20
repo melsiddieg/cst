@@ -1,0 +1,5 @@
+# Edge artifacts (built locally / in Colab)
+checkpoints/
+artifacts/
+.venv/
+__pycache__/

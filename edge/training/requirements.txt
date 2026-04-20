@@ -1,0 +1,4 @@
+# Colab already has torch — these are the extras.
+transformers>=4.40,<4.50
+onnx>=1.16
+onnxruntime>=1.18,<2.0

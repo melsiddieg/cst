@@ -1,6 +1,10 @@
 """
 Arabic CST Experiment — Download, tokenize (CST + SentencePiece BPE), compare.
 
+NOTE: This is the legacy experimental script. The canonical Arabic CST tokenizer
+is now edge/training/tokenize_1m.py, which conforms to cst-spec.ts v1.0
+(REL/STR/LIT tokens instead of FUNC/SURF).
+
 This script:
   1. Downloads 100K Arabic sentences from Arabic Wikipedia via HuggingFace API
   2. Extracts trilateral roots using camel-tools morphological analyzer

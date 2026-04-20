@@ -342,7 +342,13 @@ export const SEMANTIC_FIELDS: Record<string, string> = {
   obtain: "possess",
   get: "possess",
   receive: "possess",
-  take: "possess",
+
+  // ── Taking / Seizing ──
+  take: "take",
+  seize: "take",
+  capture: "take",
+  steal: "take",
+  snatch: "take",
 
   // ── Giving / Sharing ──
   give: "give",
@@ -382,13 +388,13 @@ export const SEMANTIC_FIELDS: Record<string, string> = {
   correct: "fix",
 
   // ── Eating / Consuming ──
-  eat: "consume",
-  drink: "consume",
-  taste: "consume",
-  feed: "consume",
-  swallow: "consume",
-  bite: "consume",
-  chew: "consume",
+  eat: "food",
+  drink: "food",
+  taste: "food",
+  feed: "food",
+  swallow: "food",
+  bite: "food",
+  chew: "food",
 
   // ── Sleeping / Resting ──
   sleep: "rest",
@@ -588,11 +594,11 @@ export const SEMANTIC_FIELDS: Record<string, string> = {
   temple: "dwell",
 
   // ── food nouns ──
-  food: "consume",
-  meal: "consume",
-  bread: "consume",
-  water: "consume",
-  fruit: "consume",
+  food: "food",
+  meal: "food",
+  bread: "food",
+  water: "food",
+  fruit: "food",
 
   // ── body / physical ──
   body: "body",
