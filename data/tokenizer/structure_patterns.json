@@ -1,0 +1,26 @@
+[
+  {
+    "pattern": "\\?$",
+    "token": "STR:question"
+  },
+  {
+    "pattern": "\\b(not|never|no|cannot|can't|won't|don't|doesn't|didn't)\\b",
+    "token": "STR:negation"
+  },
+  {
+    "pattern": "\\b(if|unless|when|whenever|provided that)\\b",
+    "token": "STR:condition"
+  },
+  {
+    "pattern": "\\b(will|shall|going to|gonna)\\b",
+    "token": "STR:future"
+  },
+  {
+    "pattern": "\\b(was|were|had|did)\\b",
+    "token": "STR:past"
+  },
+  {
+    "pattern": "!$",
+    "token": "STR:emphasis"
+  }
+]
