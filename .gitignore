@@ -9,6 +9,10 @@ data/sentences.json
 data/sentences-1k.json
 data/sentences-100.json
 
+# Reasoning corpora (large JSONL — keep on Drive, not git)
+reasoning/out/*.jsonl
+reasoning/tokenized/*.jsonl
+
 # Colab upload staging directories (derived data)
 training/colab-upload/
 training/colab-upload-fair/
