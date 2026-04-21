@@ -305,6 +305,27 @@ def main():
     int8_path, int8_mb = quantize_int8(onnx_path, OUT_DIR)
     build_vocab_json(vocab_path, OUT_DIR)
 
+    # Summary (matches colab_bpe_1m.py schema for compare_bpc.py)
+    summary = {
+        "tokenizer": "cst",
+        "data_file": DATA_FILE,
+        "n_sentences": len(ids_list),
+        "vocab_size": vocab_size,
+        "n_params": n_params,
+        "best_val_bpc": best_bpc,
+        "onnx_fp32_mb": fp32_mb,
+        "onnx_int8_mb": int8_mb,
+        "config": {
+            "n_embd": N_EMBD, "n_layer": N_LAYER, "n_head": N_HEAD,
+            "max_len": MAX_LEN, "epochs": EPOCHS, "batch_size": BATCH_SIZE,
+            "lr": LR,
+        },
+    }
+    summary_path = os.path.join(OUT_DIR, "summary_cst.json")
+    with open(summary_path, "w") as f:
+        json.dump(summary, f, indent=2)
+    print(f"  Summary:    {summary_path}")
+
     # Summary
     print(f"\n{'='*60}")
     print(f"  DONE — Arabic CST Edge 1M")

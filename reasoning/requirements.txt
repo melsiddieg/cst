@@ -1,0 +1,21 @@
+# Reasoning pipeline dependencies
+# Install: pip install -r requirements.txt
+
+# Datasets + streaming
+datasets>=2.14.0
+
+# Tokenizer backend (shared with edge/)
+camel-tools>=1.5.0
+
+# Translation (NLLB-200)
+transformers>=4.40.0
+torch>=2.0.0
+sentencepiece>=0.1.99
+
+# Optional: Gemini for QA sample (provide GEMINI_API_KEY)
+google-genai>=0.3.0
+
+# English lemmatizer + POS + dependency parser (T_R^en backend)
+spacy>=3.7.0
+# After install, download the English model:
+#   python -m spacy download en_core_web_sm
