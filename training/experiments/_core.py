@@ -141,11 +141,16 @@ def train_and_eval(
     lr: float = DEFAULTS["lr"],
     max_len: int = DEFAULTS["max_len"],
     verbose: bool = True,
+    ckpt_path: str | None = None,
 ) -> dict[str, Any]:
     """Train a fresh GPT-2 on the given tokenized data, evaluate on val.
 
     Returns a dict with keys: name, seed, vocab_size, params, best_val_loss,
     best_val_ppl, best_val_bpc, history.
+
+    If ``ckpt_path`` is given, saves the best-val-BPC checkpoint there as a
+    HuggingFace-style directory (model + config). The vocab is NOT saved — it
+    lives alongside the .jsonl and is loaded separately by downstream eval.
     """
     set_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -222,6 +227,15 @@ def train_and_eval(
             best_val_loss = val_loss
         if val_bpc < best_val_bpc:
             best_val_bpc = val_bpc
+            if ckpt_path is not None:
+                os.makedirs(ckpt_path, exist_ok=True)
+                model.save_pretrained(ckpt_path)
+                with open(os.path.join(ckpt_path, "meta.json"), "w") as mf:
+                    json.dump({
+                        "name": name, "seed": seed, "epoch": epoch,
+                        "val_bpc": val_bpc, "val_loss": val_loss,
+                        "vocab_size": vocab_size, "max_len": max_len,
+                    }, mf, indent=2)
         if verbose:
             print(f"    epoch {epoch}/{epochs}  train_loss={train_loss:.4f}  "
                   f"val_loss={val_loss:.4f}  val_ppl={val_ppl:.1f}  val_bpc={val_bpc:.4f}  "

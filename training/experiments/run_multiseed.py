@@ -53,17 +53,28 @@ PAIRS = {
         "32k": [("AR-CST-32K", "cst-ar-32k/train-100000.jsonl", "cst-ar-32k/train-100000-vocab.json"),
                 ("AR-SPM-32K", "spm-ar/ar-bpe-32000.jsonl",     "spm-ar/ar-bpe-32000-vocab.json")],
     },
+    # Russian track — tokenized corpora not yet built. See plan/PHASE0_RUSSIAN.md
+    # for the tokenizer work required before this can run.
+    "ru": {
+        "8k":  [("RU-CST-8K",  "cst-ru-8k/train-100000.jsonl",  "cst-ru-8k/train-100000-vocab.json"),
+                ("RU-SPM-8K",  "spm-ru/ru-bpe-8000.jsonl",      "spm-ru/ru-bpe-8000-vocab.json")],
+        "32k": [("RU-CST-32K", "cst-ru-32k/train-100000.jsonl", "cst-ru-32k/train-100000-vocab.json"),
+                ("RU-SPM-32K", "spm-ru/ru-bpe-32000.jsonl",     "spm-ru/ru-bpe-32000-vocab.json")],
+    },
 }
 
 
 def main() -> int:
     p = argparse.ArgumentParser()
-    p.add_argument("--lang", choices=["en", "ar"], required=True)
+    p.add_argument("--lang", choices=["en", "ar", "ru"], required=True)
     p.add_argument("--runs", nargs="+", default=["8k", "32k"])
-    p.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
+    p.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2, 3, 4])
     p.add_argument("--data-dir", default="/content")
     p.add_argument("--out", required=True)
     p.add_argument("--epochs", type=int, default=DEFAULTS["epochs"])
+    p.add_argument("--ckpt-dir", default=None,
+                   help="If set, best-BPC checkpoint per (name,seed) is saved to "
+                        "<ckpt-dir>/<name>-seed<seed>/")
     args = p.parse_args()
 
     all_results: list[dict] = []
@@ -86,6 +97,9 @@ def main() -> int:
             tr_ids, tr_ch, va_ids, va_ch = split_train_val(ids_list, char_counts, DEFAULTS["val_ratio"])
 
             for seed in args.seeds:
+                ckpt_path = None
+                if args.ckpt_dir:
+                    ckpt_path = os.path.join(args.ckpt_dir, f"{name}-seed{seed}")
                 result = train_and_eval(
                     name=name,
                     train_ids=tr_ids, train_chars=tr_ch,
@@ -93,7 +107,10 @@ def main() -> int:
                     vocab_size=vocab_size,
                     seed=seed,
                     epochs=args.epochs,
+                    ckpt_path=ckpt_path,
                 )
+                if ckpt_path:
+                    result["ckpt_path"] = ckpt_path
                 result["lang"] = args.lang
                 result["run"] = run
                 all_results.append(result)
