@@ -9,12 +9,7 @@ import { Vocabulary } from "./vocabulary.ts";
 // @ts-ignore compromise has no typed exports for this pattern
 import nlp from "compromise";
 
-export type {
-  Token,
-  TokenizerOutput,
-  CoverageStats,
-  VocabEntry,
-} from "./types.ts";
+export type { Token, TokenizerOutput, CoverageStats, VocabEntry } from "./types.ts";
 export { Vocabulary } from "./vocabulary.ts";
 export { getSemanticField, SEMANTIC_FIELDS } from "./semanticFields.ts";
 

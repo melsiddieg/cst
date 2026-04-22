@@ -272,11 +272,7 @@ function buildHTML(markdownContent: string, rtl: boolean): string {
 // PDF generation
 // ---------------------------------------------------------------------------
 
-async function generatePDF(
-  inputPath: string,
-  outputPath: string,
-  rtl: boolean,
-): Promise<void> {
+async function generatePDF(inputPath: string, outputPath: string, rtl: boolean): Promise<void> {
   console.log(`  Reading  : ${inputPath}`);
   const markdown = readFileSync(inputPath, "utf-8");
   const html = buildHTML(markdown, rtl);

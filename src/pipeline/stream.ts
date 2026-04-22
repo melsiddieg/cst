@@ -9,12 +9,7 @@
  *   npx tsx src/pipeline/stream.ts 171000 test     # test split
  */
 
-import {
-  createWriteStream,
-  mkdirSync,
-  existsSync,
-  readFileSync,
-} from "node:fs";
+import { createWriteStream, mkdirSync, existsSync, readFileSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { CSTTokenizer } from "../tokenizer/index.ts";
@@ -53,24 +48,16 @@ async function downloadParquet(split: string): Promise<string> {
   mkdirSync(dirname(localPath), { recursive: true });
   const buffer = Buffer.from(await dataRes.arrayBuffer());
   await writeFile(localPath, buffer);
-  console.log(
-    `  Saved to ${localPath} (${(buffer.length / 1e6).toFixed(1)} MB)`,
-  );
+  console.log(`  Saved to ${localPath} (${(buffer.length / 1e6).toFixed(1)} MB)`);
 
   return localPath;
 }
 
 // ── Read sentences from parquet ────────────────────
 
-async function readParquetSentences(
-  filePath: string,
-  maxCount: number,
-): Promise<string[]> {
+async function readParquetSentences(filePath: string, maxCount: number): Promise<string[]> {
   const buffer = readFileSync(filePath);
-  const arrayBuffer = buffer.buffer.slice(
-    buffer.byteOffset,
-    buffer.byteOffset + buffer.byteLength,
-  );
+  const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 
   const sentences: string[] = [];
 
@@ -125,9 +112,7 @@ async function main() {
   const split = process.argv[3] ?? "train";
 
   console.log(`\n═══ CST Stream Pipeline ═══`);
-  console.log(
-    `Target: ${targetCount.toLocaleString()} sentences, split=${split}\n`,
-  );
+  console.log(`Target: ${targetCount.toLocaleString()} sentences, split=${split}\n`);
 
   // Step 1: Download parquet
   console.log("Step 1: Download parquet...");
@@ -228,9 +213,7 @@ async function main() {
   console.log(
     `  BPE:         ${bpeExamples.toLocaleString()} examples, vocab ${bpeVocab.size.toLocaleString()}`,
   );
-  console.log(
-    `  Lemma cache: ${(tokenizer as any).lemmaCache?.size ?? "?"} unique words`,
-  );
+  console.log(`  Lemma cache: ${(tokenizer as any).lemmaCache?.size ?? "?"} unique words`);
   console.log(
     `  Compression: ${((1 - tokenizer.getVocabSize() / bpeVocab.size) * 100).toFixed(1)}% vocab reduction`,
   );

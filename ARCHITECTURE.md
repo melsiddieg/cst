@@ -18,10 +18,10 @@ text  ──►  normalize  ──►  segment  ──►  morphology  ──►
 
 Two tokenization levels share one pipeline:
 
-| Level     | Purpose                                          | Produces                                              | Home                            |
-|-----------|--------------------------------------------------|-------------------------------------------------------|---------------------------------|
-| Default   | Language-model training / inference              | `ROOT:field`, `INF:tense`, `REL:…`, `STR:…`, etc.     | [`src/tokenizer/`](src/tokenizer), [`edge/arabic_tokenizer.py`](edge/arabic_tokenizer.py), [`edge/english_tokenizer.py`](edge/english_tokenizer.py) |
-| Reasoning | Dense structured token stream for reasoning LMs  | `[BOS] CMP:field:role LIT:kind:value … [EOS]`         | [`reasoning/tokenizer/`](reasoning/tokenizer) + [`arabic-algebra-engine`](../arabic-algebra/arabic-algebra-engine) |
+| Level     | Purpose                                         | Produces                                          | Home                                                                                                                                                |
+| --------- | ----------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Default   | Language-model training / inference             | `ROOT:field`, `INF:tense`, `REL:…`, `STR:…`, etc. | [`src/tokenizer/`](src/tokenizer), [`edge/arabic_tokenizer.py`](edge/arabic_tokenizer.py), [`edge/english_tokenizer.py`](edge/english_tokenizer.py) |
+| Reasoning | Dense structured token stream for reasoning LMs | `[BOS] CMP:field:role LIT:kind:value … [EOS]`     | [`reasoning/tokenizer/`](reasoning/tokenizer) + [`arabic-algebra-engine`](../arabic-algebra/arabic-algebra-engine)                                  |
 
 See [docs/spec/two-level-tokenization.md](docs/spec/two-level-tokenization.md) for the formal specification.
 
