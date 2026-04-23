@@ -167,6 +167,7 @@ python training/analyze_missed.py
 | Topic                       | Link                                                                         |
 | --------------------------- | ---------------------------------------------------------------------------- |
 | One-page architecture       | [`ARCHITECTURE.md`](ARCHITECTURE.md)                                         |
+| Code walkthrough            | [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md)                                 |
 | Roadmap and planned work    | [`ROADMAP.md`](ROADMAP.md)                                                   |
 | Research paper (EN / AR)    | [`docs/paper/`](docs/paper)                                                  |
 | Two-level tokenization spec | [`docs/spec/two-level-tokenization.md`](docs/spec/two-level-tokenization.md) |
