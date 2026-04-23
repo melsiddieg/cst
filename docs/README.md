@@ -19,6 +19,7 @@ PDFs are built from the Markdown sources with `npm run pdf` (output: `docs/paper
 | [`cst-arabic-tokenizers.md`](spec/cst-arabic-tokenizers.md)   | Shared spec + Arabic-specific rules                       |
 | [`cst-arabic-coverage.md`](spec/cst-arabic-coverage.md)       | Arabic surface decomposition (prefix / core / inflection) |
 | [`cst-english-tokenizers.md`](spec/cst-english-tokenizers.md) | English normalization + tokenization rules                |
+| [`WALKTHROUGH.md`](WALKTHROUGH.md)                            | Reader-focused guide to the codebase and main execution path |
 
 ## Media & press ([`media/`](media))
 
